@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
@@ -27,6 +28,8 @@ export function Sidebar() {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const supabase = createClient()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -81,22 +84,24 @@ export function Sidebar() {
         </Link>
 
         {/* Troca de tema */}
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-        >
-          {theme === 'dark' ? (
-            <>
-              <Sun className="w-4 h-4 shrink-0" />
-              Tema claro
-            </>
-          ) : (
-            <>
-              <Moon className="w-4 h-4 shrink-0" />
-              Tema escuro
-            </>
-          )}
-        </button>
+        {mounted && (
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+          >
+            {theme === 'dark' ? (
+              <>
+                <Sun className="w-4 h-4 shrink-0" />
+                Tema claro
+              </>
+            ) : (
+              <>
+                <Moon className="w-4 h-4 shrink-0" />
+                Tema escuro
+              </>
+            )}
+          </button>
+        )}
 
         <Button
           variant="ghost"
