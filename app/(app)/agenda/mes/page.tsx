@@ -1,16 +1,16 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { addWeeks, subWeeks, format } from 'date-fns'
+import { addMonths, subMonths, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { createClient } from '@/lib/supabase/client'
-import { WeekView } from '@/components/agenda/WeekView'
+import { MonthView } from '@/components/agenda/MonthView'
 import { EventModal } from '@/components/agenda/EventModal'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { Event } from '@/types'
 
-export default function SemanaPage() {
+export default function MesPage() {
   const supabase = createClient()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [events, setEvents] = useState<Event[]>([])
@@ -54,7 +54,7 @@ export default function SemanaPage() {
 
   useEffect(() => { loadEvents() }, [loadEvents])
 
-  function handleSlotClick(date: string) {
+  function handleDayClick(date: string) {
     setDefaultDate(date)
     setEditingEvent(null)
     setModalOpen(true)
@@ -66,13 +66,7 @@ export default function SemanaPage() {
     setModalOpen(true)
   }
 
-  function handleNewEvent() {
-    setDefaultDate(format(new Date(), 'yyyy-MM-dd'))
-    setEditingEvent(null)
-    setModalOpen(true)
-  }
-
-  const weekLabel = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })
+  const monthLabel = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })
 
   if (loading) {
     return (
@@ -84,11 +78,8 @@ export default function SemanaPage() {
 
   if (noFamily) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center space-y-2">
-          <p className="text-muted-foreground text-sm">Perfil sem família vinculada.</p>
-          <p className="text-xs text-muted-foreground">Verifique o banco de dados ou faça o onboarding.</p>
-        </div>
+      <div className="flex items-center justify-center h-screen text-muted-foreground text-sm">
+        Perfil sem família vinculada.
       </div>
     )
   }
@@ -99,14 +90,14 @@ export default function SemanaPage() {
       <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setCurrentDate(d => subWeeks(d, 1))}
+            onClick={() => setCurrentDate(d => subMonths(d, 1))}
             className="p-1.5 rounded-lg hover:bg-muted transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <h1 className="text-base font-semibold capitalize min-w-40 text-center">{weekLabel}</h1>
+          <h1 className="text-base font-semibold capitalize min-w-40 text-center">{monthLabel}</h1>
           <button
-            onClick={() => setCurrentDate(d => addWeeks(d, 1))}
+            onClick={() => setCurrentDate(d => addMonths(d, 1))}
             className="p-1.5 rounded-lg hover:bg-muted transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
@@ -121,23 +112,27 @@ export default function SemanaPage() {
           </Button>
         </div>
 
-        <Button onClick={handleNewEvent} size="sm" className="gap-2">
+        <Button
+          onClick={() => { setEditingEvent(null); setDefaultDate(format(new Date(), 'yyyy-MM-dd')); setModalOpen(true) }}
+          size="sm"
+          className="gap-2"
+        >
           <Plus className="w-4 h-4" />
           Novo evento
         </Button>
       </div>
 
-      {/* Grade semanal */}
+      {/* Calendário mensal */}
       <div className="flex-1 overflow-hidden">
-        <WeekView
+        <MonthView
           currentDate={currentDate}
           events={events}
-          onSlotClick={handleSlotClick}
+          onDayClick={handleDayClick}
           onEventClick={handleEventClick}
         />
       </div>
 
-      {/* Modal de criação/edição */}
+      {/* Modal */}
       {familyId && userId && (
         <EventModal
           open={modalOpen}
