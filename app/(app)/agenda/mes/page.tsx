@@ -87,7 +87,7 @@ export default function MesPage() {
   return (
     <div className="flex flex-col h-screen">
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+      <div className="flex items-center justify-between pl-14 md:pl-6 pr-6 py-4 border-b border-border shrink-0">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setCurrentDate(d => subMonths(d, 1))}

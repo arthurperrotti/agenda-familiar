@@ -104,7 +104,7 @@ export default function ObjetivosPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-10 md:pt-0">
         <div>
           <h1 className="text-xl font-semibold">Objetivos</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
