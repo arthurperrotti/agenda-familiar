@@ -8,12 +8,13 @@ import { WeekView } from '@/components/agenda/WeekView'
 import { EventModal } from '@/components/agenda/EventModal'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { Event } from '@/types'
+import type { Event, User } from '@/types'
 
 export default function SemanaPage() {
   const supabase = createClient()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [events, setEvents] = useState<Event[]>([])
+  const [members, setMembers] = useState<Record<string, User>>({})
   const [modalOpen, setModalOpen] = useState(false)
   const [defaultDate, setDefaultDate] = useState('')
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
@@ -44,12 +45,14 @@ export default function SemanaPage() {
 
   const loadEvents = useCallback(async () => {
     if (!familyId) return
-    const { data } = await supabase
-      .from('events')
-      .select('*')
-      .eq('family_id', familyId)
-      .order('start_time')
-    setEvents((data as Event[]) ?? [])
+    const [{ data: eventsData }, { data: profilesData }] = await Promise.all([
+      supabase.from('events').select('*').eq('family_id', familyId).order('start_time'),
+      supabase.from('profiles').select('*').eq('family_id', familyId),
+    ])
+    setEvents((eventsData as Event[]) ?? [])
+    const map: Record<string, User> = {}
+    for (const p of (profilesData as User[]) ?? []) map[p.id] = p
+    setMembers(map)
   }, [familyId])
 
   useEffect(() => { loadEvents() }, [loadEvents])
@@ -132,6 +135,7 @@ export default function SemanaPage() {
         <WeekView
           currentDate={currentDate}
           events={events}
+          members={members}
           onSlotClick={handleSlotClick}
           onEventClick={handleEventClick}
         />

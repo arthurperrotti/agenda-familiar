@@ -1,22 +1,23 @@
 'use client'
 
 import { useMemo } from 'react'
-import { format, startOfWeek, addDays, isSameDay, isToday } from 'date-fns'
+import { format, startOfWeek, addDays, isToday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { categoryConfig } from '@/lib/categories'
-import type { Event } from '@/types'
+import type { Event, User } from '@/types'
 
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 6) // 06h às 22h
-const HOUR_HEIGHT = 64 // px por hora
+const HOUR_HEIGHT = 64
 
 interface WeekViewProps {
   currentDate: Date
   events: Event[]
+  members: Record<string, User>
   onSlotClick: (date: string, time: string) => void
   onEventClick: (event: Event) => void
 }
 
-export function WeekView({ currentDate, events, onSlotClick, onEventClick }: WeekViewProps) {
+export function WeekView({ currentDate, events, members, onSlotClick, onEventClick }: WeekViewProps) {
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 })
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
@@ -53,9 +54,7 @@ export function WeekView({ currentDate, events, onSlotClick, onEventClick }: Wee
               {format(day, 'EEE', { locale: ptBR })}
             </p>
             <p className={`text-lg font-semibold mt-0.5 w-8 h-8 rounded-full flex items-center justify-center mx-auto ${
-              isToday(day)
-                ? 'bg-primary text-primary-foreground'
-                : 'text-foreground'
+              isToday(day) ? 'bg-primary text-primary-foreground' : 'text-foreground'
             }`}>
               {format(day, 'd')}
             </p>
@@ -88,7 +87,6 @@ export function WeekView({ currentDate, events, onSlotClick, onEventClick }: Wee
 
             return (
               <div key={dayKey} className="relative border-r border-border last:border-r-0">
-                {/* Slots de hora clicáveis */}
                 {HOURS.map(hour => (
                   <div
                     key={hour}
@@ -98,9 +96,12 @@ export function WeekView({ currentDate, events, onSlotClick, onEventClick }: Wee
                   />
                 ))}
 
-                {/* Eventos posicionados absolutamente */}
                 {dayEvents.map(event => {
                   const { top, height, color } = getEventStyle(event)
+                  const creator = members[event.created_by]
+                  const avatarColor = creator?.avatar_color ?? '#8B8FA8'
+                  const initial = creator?.name?.charAt(0).toUpperCase() ?? '?'
+
                   return (
                     <div
                       key={event.id}
@@ -108,12 +109,26 @@ export function WeekView({ currentDate, events, onSlotClick, onEventClick }: Wee
                       className="absolute inset-x-0.5 rounded-md border-l-[3px] px-2 py-1 cursor-pointer hover:brightness-110 transition-all overflow-hidden z-10"
                       onClick={(e) => { e.stopPropagation(); onEventClick(event) }}
                     >
-                      <p className="text-xs font-semibold leading-tight truncate" style={{ color }}>
-                        {event.title}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {event.start_time.slice(0, 5)} – {event.end_time.slice(0, 5)}
-                      </p>
+                      <div className="flex items-start justify-between gap-1">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold leading-tight truncate" style={{ color }}>
+                            {event.title}
+                          </p>
+                          {height >= 36 && (
+                            <p className="text-[10px] text-muted-foreground">
+                              {event.start_time.slice(0, 5)} – {event.end_time.slice(0, 5)}
+                            </p>
+                          )}
+                        </div>
+                        {/* Avatar do criador */}
+                        <div
+                          className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0 mt-0.5"
+                          style={{ backgroundColor: avatarColor }}
+                          title={creator?.name ?? 'Desconhecido'}
+                        >
+                          {initial}
+                        </div>
+                      </div>
                     </div>
                   )
                 })}

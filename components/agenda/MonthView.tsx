@@ -7,7 +7,7 @@ import {
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { categoryConfig } from '@/lib/categories'
-import type { Event } from '@/types'
+import type { Event, User } from '@/types'
 import { cn } from '@/lib/utils'
 
 const WEEK_DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -15,11 +15,12 @@ const WEEK_DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 interface MonthViewProps {
   currentDate: Date
   events: Event[]
+  members: Record<string, User>
   onDayClick: (date: string) => void
   onEventClick: (event: Event) => void
 }
 
-export function MonthView({ currentDate, events, onDayClick, onEventClick }: MonthViewProps) {
+export function MonthView({ currentDate, events, members, onDayClick, onEventClick }: MonthViewProps) {
   const days = useMemo(() => {
     const start = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 })
     const end = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 })
@@ -84,14 +85,21 @@ export function MonthView({ currentDate, events, onDayClick, onEventClick }: Mon
               <div className="space-y-0.5">
                 {dayEvents.slice(0, 3).map(event => {
                   const color = categoryConfig[event.category]?.darkColor ?? '#8B8FA8'
+                  const creator = members[event.created_by]
+                  const avatarColor = creator?.avatar_color ?? '#8B8FA8'
+                  const initial = creator?.name?.charAt(0).toUpperCase() ?? '?'
                   return (
                     <button
                       key={event.id}
                       onClick={e => { e.stopPropagation(); onEventClick(event) }}
-                      className="w-full text-left text-[10px] px-1.5 py-0.5 rounded truncate font-medium leading-tight"
+                      className="w-full text-left text-[10px] px-1.5 py-0.5 rounded font-medium leading-tight flex items-center gap-1"
                       style={{ backgroundColor: color + '30', color }}
                     >
-                      {event.start_time.slice(0, 5)} {event.title}
+                      <span
+                        className="w-3 h-3 rounded-full shrink-0 flex items-center justify-center text-[7px] font-bold text-white"
+                        style={{ backgroundColor: avatarColor }}
+                      >{initial}</span>
+                      <span className="truncate">{event.start_time.slice(0, 5)} {event.title}</span>
                     </button>
                   )
                 })}
